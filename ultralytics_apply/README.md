@@ -56,3 +56,26 @@ ultralytics/cfg/models/aemfod/
 ```
 
 也可以从任意位置以完整 YAML 路径创建模型，不必复制配置。
+
+### 6 训练
+
+训练示例：
+
+```python
+from pathlib import Path
+from ultralytics import YOLO
+
+settings = dict(
+    data=r"F:\YOUR_DATASET\VisDrone.yaml",  # 替换为真实数据配置
+    imgsz=640,
+    epochs=300,
+    batch=64,
+    pretrained=False,
+    seed=0,
+    device=0,
+)
+
+config_root = Path(r"ultralytics_transfer/configs")
+model = YOLO(str(config_root / yaml)), task="detect")
+model.train(**settings, project="runs/aemfod-transfer")
+```
