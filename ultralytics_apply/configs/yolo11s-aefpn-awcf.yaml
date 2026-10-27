@@ -1,0 +1,44 @@
+# Ultralytics YOLO, AGPL-3.0 license; backbone from official 8.3.0.
+# Three heads P3/P4/P5: transfer of the original END AEFPN+AWCF neck.
+# Original fusion topology; host-native C3k2 neck feature blocks.
+# Small (s) scale only. nc=10 is VisDrone; set nc=15 for DOTA HBB.
+nc: 10
+scale: s
+scales:
+  s: [0.5, 0.5, 1024]
+
+backbone:
+  - [-1, 1, "Conv", [64, 3, 2]]  # 0
+  - [-1, 1, "Conv", [128, 3, 2]]  # 1
+  - [-1, 2, "C3k2", [256, false, 0.25]]  # 2
+  - [-1, 1, "Conv", [256, 3, 2]]  # 3
+  - [-1, 2, "C3k2", [512, false, 0.25]]  # 4
+  - [-1, 1, "Conv", [512, 3, 2]]  # 5
+  - [-1, 2, "C3k2", [512, true]]  # 6
+  - [-1, 1, "Conv", [1024, 3, 2]]  # 7
+  - [-1, 2, "C3k2", [1024, true]]  # 8
+  - [-1, 1, "SPPF", [1024, 5]]  # 9
+  - [-1, 2, "C2PSA", [1024]]  # 10
+
+head:
+  - [4, 1, "Conv", [64, 1, 1]]  # 11
+  - [6, 1, "Conv", [128, 1, 1]]  # 12
+  - [10, 1, "Conv", [256, 1, 1]]  # 13
+  - [[11, 12, 13], 1, "AWCF3", [64, 0]]  # 14
+  - [[11, 12, 13], 1, "AWCF3", [128, 1]]  # 15
+  - [[11, 12, 13], 1, "AWCF3", [256, 2]]  # 16
+  - [-3, 1, "AEFPNBlock", [64]]  # 17
+  - [-3, 1, "AEFPNBlock", [128]]  # 18
+  - [-3, 1, "AEFPNBlock", [256]]  # 19
+  - [[-1, 16, 18], 1, "ALF2", [128]]  # 20
+  - [-1, 2, "C3k2", [128, false]]  # 21
+  - [[-1, 18, 17], 1, "ALF2", [64]]  # 22
+  - [-1, 2, "C3k2", [64, false]]  # 23
+  - [[23, 21], 1, "AWCF2", [64, 0]]  # 24
+  - [[23, 21], 1, "AWCF2", [128, 1]]  # 25
+  - [-2, 1, "AEFPNBlock", [64]]  # 26
+  - [-2, 1, "AEFPNBlock", [128]]  # 27
+  - [-2, 1, "Conv", [256, 1, 1]]  # 28
+  - [-2, 1, "Conv", [512, 1, 1]]  # 29
+  - [19, 1, "Conv", [1024, 1, 1]]  # 30
+  - [[28, 29, 30], 1, "Detect", ["nc"]]  # 31
